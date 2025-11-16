@@ -50,7 +50,7 @@ export function InstallmentGroupCard({
 
   return (
     <Card className={cn(isFullySelected && "border-primary/50")}>
-      <CardContent className="flex flex-col gap-2 py-3">
+      <CardContent className="flex flex-col gap-2 py-1">
         {/* Header do card */}
         <div className="flex items-start gap-3">
           <Checkbox
@@ -63,7 +63,7 @@ export function InstallmentGroupCard({
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{group.name}</p>
+                <p className="text-sm font-bold">{group.name}</p>
                 <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                   {group.cartaoName && (
                     <>
@@ -154,34 +154,47 @@ export function InstallmentGroupCard({
                   className={cn(
                     "flex items-center gap-3 rounded-md border p-2 transition-colors",
                     isSelected && !isPaid && "border-primary/50 bg-primary/5",
-                    isPaid && "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30"
+                    isPaid &&
+                      "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30"
                   )}
                 >
                   <Checkbox
                     checked={isPaid ? false : isSelected}
                     disabled={isPaid}
-                    onCheckedChange={() => !isPaid && onToggleInstallment(installment.id)}
+                    onCheckedChange={() =>
+                      !isPaid && onToggleInstallment(installment.id)
+                    }
                     aria-label={`Selecionar parcela ${installment.currentInstallment} de ${group.totalInstallments}`}
                   />
 
                   <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className={cn(
-                        "text-sm font-medium",
-                        isPaid && "text-green-700 dark:text-green-400 line-through decoration-green-600/50"
-                      )}>
+                      <p
+                        className={cn(
+                          "text-sm font-medium",
+                          isPaid &&
+                            "text-green-700 dark:text-green-400 line-through decoration-green-600/50"
+                        )}
+                      >
                         Parcela {installment.currentInstallment}/
                         {group.totalInstallments}
                         {isPaid && (
-                          <Badge variant="outline" className="ml-2 text-xs border-green-500 text-green-700 dark:text-green-400">
+                          <Badge
+                            variant="outline"
+                            className="ml-2 text-xs border-green-700 text-green-700 dark:text-green-400"
+                          >
                             Paga
                           </Badge>
                         )}
                       </p>
-                      <p className={cn(
-                        "text-xs",
-                        isPaid ? "text-green-600 dark:text-green-500" : "text-muted-foreground"
-                      )}>
+                      <p
+                        className={cn(
+                          "text-xs",
+                          isPaid
+                            ? "text-green-700 dark:text-green-500"
+                            : "text-muted-foreground"
+                        )}
+                      >
                         Vencimento: {dueDate}
                       </p>
                     </div>
