@@ -2,12 +2,10 @@
 
 import MoneyValues from "@/components/money-values";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import { useMemo, useState } from "react";
 import type { InstallmentAnalysisData } from "./types";
 import { InstallmentGroupCard } from "./installment-group-card";
-import { AnalysisSummaryPanel } from "./analysis-summary-panel";
 import {
   RiCalculatorLine,
   RiCheckboxBlankLine,
@@ -98,7 +96,7 @@ export function InstallmentAnalysisPage({
   };
 
   // Calcular totais
-  const { totalInstallments, grandTotal, selectedCount } = useMemo(() => {
+  const { grandTotal, selectedCount } = useMemo(() => {
     let installmentsSum = 0;
     let installmentsCount = 0;
 
@@ -120,7 +118,6 @@ export function InstallmentAnalysisPage({
     });
 
     return {
-      totalInstallments: installmentsSum,
       grandTotal: installmentsSum,
       selectedCount: installmentsCount,
     };
@@ -178,70 +175,46 @@ export function InstallmentAnalysisPage({
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-        {/* Conteúdo principal */}
-        <div className="flex flex-col gap-6">
-          {/* Seção de Lançamentos Parcelados */}
-          {data.installmentGroups.length > 0 && (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2">
-                <Separator className="flex-1" />
-                <h2 className="text-lg font-semibold">Lançamentos Parcelados</h2>
-                <Separator className="flex-1" />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                {data.installmentGroups.map((group) => (
-                  <InstallmentGroupCard
-                    key={group.seriesId}
-                    group={group}
-                    selectedInstallments={
-                      selectedInstallments.get(group.seriesId) || new Set()
-                    }
-                    onToggleGroup={() =>
-                      toggleGroupSelection(
-                        group.seriesId,
-                        group.pendingInstallments
-                          .filter((i) => !i.isSettled)
-                          .map((i) => i.id)
-                      )
-                    }
-                    onToggleInstallment={(installmentId) =>
-                      toggleInstallmentSelection(group.seriesId, installmentId)
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Estado vazio */}
-          {hasNoData && (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
-                <RiCalculatorLine className="size-12 text-muted-foreground/50" />
-                <div className="text-center">
-                  <p className="font-medium">Nenhuma parcela pendente</p>
-                  <p className="text-sm text-muted-foreground">
-                    Você está em dia com seus pagamentos!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Painel lateral de resumo (sticky) */}
-        {!hasNoData && (
-          <div className="lg:sticky lg:top-4 lg:self-start">
-            <AnalysisSummaryPanel
-              totalInstallments={totalInstallments}
-              grandTotal={grandTotal}
-              selectedCount={selectedCount}
+      {/* Seção de Lançamentos Parcelados */}
+      {data.installmentGroups.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {data.installmentGroups.map((group) => (
+            <InstallmentGroupCard
+              key={group.seriesId}
+              group={group}
+              selectedInstallments={
+                selectedInstallments.get(group.seriesId) || new Set()
+              }
+              onToggleGroup={() =>
+                toggleGroupSelection(
+                  group.seriesId,
+                  group.pendingInstallments
+                    .filter((i) => !i.isSettled)
+                    .map((i) => i.id)
+                )
+              }
+              onToggleInstallment={(installmentId) =>
+                toggleInstallmentSelection(group.seriesId, installmentId)
+              }
             />
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Estado vazio */}
+      {hasNoData && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center gap-3 py-12">
+            <RiCalculatorLine className="size-12 text-muted-foreground/50" />
+            <div className="text-center">
+              <p className="font-medium">Nenhuma parcela pendente</p>
+              <p className="text-sm text-muted-foreground">
+                Você está em dia com seus pagamentos!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

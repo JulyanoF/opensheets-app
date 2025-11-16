@@ -41,9 +41,7 @@ export function InstallmentGroupCard({
 
   const progress =
     group.totalInstallments > 0
-      ? ((group.paidInstallments + selectedInstallments.size) /
-          group.totalInstallments) *
-        100
+      ? (group.paidInstallments / group.totalInstallments) * 100
       : 0;
 
   const selectedAmount = group.pendingInstallments
@@ -156,7 +154,7 @@ export function InstallmentGroupCard({
                   className={cn(
                     "flex items-center gap-3 rounded-md border p-2 transition-colors",
                     isSelected && !isPaid && "border-primary/50 bg-primary/5",
-                    isPaid && "bg-muted/50 opacity-60"
+                    isPaid && "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30"
                   )}
                 >
                   <Checkbox
@@ -168,23 +166,32 @@ export function InstallmentGroupCard({
 
                   <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className={cn("text-sm font-medium", isPaid && "line-through")}>
+                      <p className={cn(
+                        "text-sm font-medium",
+                        isPaid && "text-green-700 dark:text-green-400 line-through decoration-green-600/50"
+                      )}>
                         Parcela {installment.currentInstallment}/
                         {group.totalInstallments}
                         {isPaid && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
+                          <Badge variant="outline" className="ml-2 text-xs border-green-500 text-green-700 dark:text-green-400">
                             Paga
                           </Badge>
                         )}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={cn(
+                        "text-xs",
+                        isPaid ? "text-green-600 dark:text-green-500" : "text-muted-foreground"
+                      )}>
                         Vencimento: {dueDate}
                       </p>
                     </div>
 
                     <MoneyValues
                       amount={installment.amount}
-                      className={cn("shrink-0 text-sm", isPaid && "opacity-60")}
+                      className={cn(
+                        "shrink-0 text-sm",
+                        isPaid && "text-green-700 dark:text-green-400"
+                      )}
                     />
                   </div>
                 </div>

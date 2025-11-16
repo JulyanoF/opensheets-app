@@ -143,10 +143,11 @@ export async function fetchInstallmentAnalysis(
 
   // Calcular quantas parcelas já foram pagas para cada grupo
   const installmentGroups = Array.from(seriesMap.values()).map((group) => {
-    const minPendingInstallment = Math.min(
-      ...group.pendingInstallments.map((i) => i.currentInstallment)
-    );
-    group.paidInstallments = minPendingInstallment - 1;
+    // Contar quantas parcelas estão marcadas como pagas (settled)
+    const paidCount = group.pendingInstallments.filter(
+      (i) => i.isSettled
+    ).length;
+    group.paidInstallments = paidCount;
     return group;
   });
 
