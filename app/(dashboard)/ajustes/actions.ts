@@ -22,6 +22,7 @@ const updateNameSchema = z.object({
 
 const updatePasswordSchema = z
   .object({
+    currentPassword: z.string().min(1, "Senha atual é obrigatória"),
     newPassword: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
     confirmPassword: z.string(),
   })
@@ -32,6 +33,7 @@ const updatePasswordSchema = z
 
 const updateEmailSchema = z
   .object({
+    password: z.string().optional(), // Opcional para usuários Google OAuth
     newEmail: z.string().email("E-mail inválido"),
     confirmEmail: z.string().email("E-mail inválido"),
   })
@@ -82,7 +84,7 @@ export async function updateNameAction(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: error.errors[0]?.message || "Dados inválidos",
+        error: error.issues[0]?.message || "Dados inválidos",
       };
     }
 
@@ -111,12 +113,27 @@ export async function updatePasswordAction(
 
     const validated = updatePasswordSchema.parse(data);
 
+    // Verificar se o usuário tem conta com provedor Google
+    const userAccount = await db.query.account.findFirst({
+      where: and(
+        eq(schema.account.userId, session.user.id),
+        eq(schema.account.providerId, "google")
+      ),
+    });
+
+    if (userAccount) {
+      return {
+        success: false,
+        error: "Não é possível alterar senha para contas autenticadas via Google",
+      };
+    }
+
     // Usar a API do Better Auth para atualizar a senha
     try {
       await auth.api.changePassword({
         body: {
           newPassword: validated.newPassword,
-          currentPassword: "", // Better Auth pode não exigir a senha atual dependendo da configuração
+          currentPassword: validated.currentPassword,
         },
         headers: await headers(),
       });
@@ -125,19 +142,27 @@ export async function updatePasswordAction(
         success: true,
         message: "Senha atualizada com sucesso",
       };
-    } catch (authError) {
+    } catch (authError: any) {
       console.error("Erro na API do Better Auth:", authError);
-      // Se a API do Better Auth falhar, retornar erro genérico
+
+      // Verificar se o erro é de senha incorreta
+      if (authError?.message?.includes("password") || authError?.message?.includes("incorrect")) {
+        return {
+          success: false,
+          error: "Senha atual incorreta",
+        };
+      }
+
       return {
         success: false,
-        error: "Erro ao atualizar senha. Tente novamente.",
+        error: "Erro ao atualizar senha. Verifique se a senha atual está correta.",
       };
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: error.errors[0]?.message || "Dados inválidos",
+        error: error.issues[0]?.message || "Dados inválidos",
       };
     }
 
@@ -157,7 +182,7 @@ export async function updateEmailAction(
       headers: await headers(),
     });
 
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session?.user?.email) {
       return {
         success: false,
         error: "Não autenticado",
@@ -165,6 +190,45 @@ export async function updateEmailAction(
     }
 
     const validated = updateEmailSchema.parse(data);
+
+    // Verificar se o usuário tem conta com provedor Google
+    const userAccount = await db.query.account.findFirst({
+      where: and(
+        eq(schema.account.userId, session.user.id),
+        eq(schema.account.providerId, "google")
+      ),
+    });
+
+    const isGoogleAuth = !!userAccount;
+
+    // Se não for Google OAuth, validar senha
+    if (!isGoogleAuth) {
+      if (!validated.password) {
+        return {
+          success: false,
+          error: "Senha é obrigatória para confirmar a alteração",
+        };
+      }
+
+      // Validar senha tentando fazer changePassword para a mesma senha
+      // Se falhar, a senha atual está incorreta
+      try {
+        await auth.api.changePassword({
+          body: {
+            newPassword: validated.password,
+            currentPassword: validated.password,
+          },
+          headers: await headers(),
+        });
+      } catch (authError: any) {
+        // Se der erro é porque a senha está incorreta
+        console.error("Erro ao validar senha:", authError);
+        return {
+          success: false,
+          error: "Senha incorreta",
+        };
+      }
+    }
 
     // Verificar se o e-mail já está em uso por outro usuário
     const existingUser = await db.query.user.findFirst({
@@ -178,6 +242,14 @@ export async function updateEmailAction(
       return {
         success: false,
         error: "Este e-mail já está em uso",
+      };
+    }
+
+    // Verificar se o novo e-mail é diferente do atual
+    if (validated.newEmail.toLowerCase() === session.user.email.toLowerCase()) {
+      return {
+        success: false,
+        error: "O novo e-mail deve ser diferente do atual",
       };
     }
 
@@ -202,7 +274,7 @@ export async function updateEmailAction(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: error.errors[0]?.message || "Dados inválidos",
+        error: error.issues[0]?.message || "Dados inválidos",
       };
     }
 
@@ -244,7 +316,7 @@ export async function deleteAccountAction(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: error.errors[0]?.message || "Dados inválidos",
+        error: error.issues[0]?.message || "Dados inválidos",
       };
     }
 

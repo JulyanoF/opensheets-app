@@ -5,6 +5,8 @@ import { UpdatePasswordForm } from "@/components/ajustes/update-password-form";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth } from "@/lib/auth/config";
+import { db, schema } from "@/lib/db";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -19,6 +21,14 @@ export default async function Page() {
 
   const userName = session.user.name || "";
   const userEmail = session.user.email || "";
+
+  // Detectar método de autenticação (Google OAuth vs E-mail/Senha)
+  const userAccount = await db.query.account.findFirst({
+    where: eq(schema.account.userId, session.user.id),
+  });
+
+  // Se o providerId for "google", o usuário usa Google OAuth
+  const authProvider = userAccount?.providerId || "credential";
 
   return (
     <div className="max-w-3xl">
@@ -51,7 +61,7 @@ export default async function Page() {
                 Defina uma nova senha para sua conta. Guarde-a em local seguro.
               </p>
             </div>
-            <UpdatePasswordForm />
+            <UpdatePasswordForm authProvider={authProvider} />
           </TabsContent>
 
           <TabsContent value="email" className="space-y-4">
@@ -63,7 +73,7 @@ export default async function Page() {
                 atual (quando aplicável) para concluir a alteração.
               </p>
             </div>
-            <UpdateEmailForm currentEmail={userEmail} />
+            <UpdateEmailForm currentEmail={userEmail} authProvider={authProvider} />
           </TabsContent>
 
           <TabsContent value="deletar" className="space-y-4">
