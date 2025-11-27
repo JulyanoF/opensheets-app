@@ -174,11 +174,11 @@ export function LoginForm({ className, ...props }: DivProps) {
       </Card>
 
       {/* <AuthFooter /> */}
-      <FieldDescription className="text-center">
+      {/* <FieldDescription className="text-center">
         <a href="/" className="underline underline-offset-4">
           Voltar para o site
         </a>
-      </FieldDescription>
+      </FieldDescription> */}
     </div>
   );
 }
