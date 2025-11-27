@@ -5,14 +5,6 @@ export default {
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    host: process.env.POSTGRES_HOST,
-    port: process.env.POSTGRES_PORT,
-    database: process.env.POSTGRES_DB,
-    ssl: {
-      rejectUnauthorized: true,
-      ca: process.env.PG_CA_CERTIFICATE,
-    },
+    url: process.env.DATABASE_URL!,
   },
 } satisfies Config;
