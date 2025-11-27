@@ -13,13 +13,22 @@ let _pool: Pool | undefined;
 function getDb() {
   if (_db) return _db;
 
-  const { DATABASE_URL } = process.env;
+  const { POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, PG_CA_CERTIFICATE } = process.env;
 
-  if (!DATABASE_URL) {
-    throw new Error("DATABASE_URL env variable is not set");
-  }
+  _pool =
+    globalForDb.pool ??
+    new Pool({
+      user: POSTGRES_USER,
+      password: POSTGRES_PASSWORD,
+      host: POSTGRES_HOST,
+      port: POSTGRES_PORT,
+      database: POSTGRES_DB,
+      ssl: {
+        rejectUnauthorized: true,
+        ca: PG_CA_CERTIFICATE,
+      },
+    });
 
-  _pool = globalForDb.pool ?? new Pool({ connectionString: DATABASE_URL });
   _db = globalForDb.db ?? drizzle(_pool, { schema });
 
   if (process.env.NODE_ENV !== "production") {
