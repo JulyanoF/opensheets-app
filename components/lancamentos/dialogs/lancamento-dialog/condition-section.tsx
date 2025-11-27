@@ -81,7 +81,7 @@ export function ConditionSection({
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
-              {[...Array(24)].map((_, index) => (
+              {[...Array(120)].map((_, index) => (
                 <SelectItem key={index + 2} value={String(index + 2)}>
                   Por {index + 2} meses
                 </SelectItem>
