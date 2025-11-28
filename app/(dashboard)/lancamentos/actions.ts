@@ -93,7 +93,7 @@ const baseFields = z.object({
     .number()
     .int()
     .min(1, "Selecione uma recorrência válida.")
-    .max(60, "Selecione uma recorrência válida.")
+    .max(120, "Selecione uma recorrência válida.")
     .optional(),
   dueDate: z
     .string()
